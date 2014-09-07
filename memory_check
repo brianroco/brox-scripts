@@ -1,0 +1,51 @@
+#!/bin/bash
+
+usage () {
+  echo "Usage: `basename $0` (-c value) (-w value) (-e value) -h for help" >&2
+  echo "  -c   Set Memory percentage value identified as critical!" >&2
+  echo "  -w   Set Memory percentage value identified as warning!" >&2
+  echo "  -e   Set Email address to send to if memory is critical."  >&2
+}
+
+sendnotice () {
+  DATE=$(date +%Y%m%d" "%H:%M)
+  echo "Subject: $DATE memory check - critical" > /tmp/mail.txt
+  echo "" >> /tmp/mail.txt
+  ps -eo pid,comm,pmem --sort -rss | head -11 >> /tmp/mail.txt
+  sendmail $email < /tmp/email.txt
+#  echo "sending to $email" >&2
+}
+
+while getopts "c:w:e:h" opt; do
+  case $opt in
+    c)
+      crit=$OPTARG
+#      echo "Critical threshold set to $OPTARG" >&2
+      ;;
+    w)
+      warn=$OPTARG
+#      echo "Warning threshold set to $OPTARG" >&2
+      ;;
+    e)
+      email=$OPTARG
+#      echo "Email address set to $OPTARG" >&2
+      ;;
+    h)
+      usage
+      ;;
+  esac
+done
+
+mem=$(free | grep Mem | awk '{print int($3/$2 * 100)}')
+if [[ $mem -ge $crit ]]; then
+#  echo "Memory $mem is critical"
+#  echo "Report Top 10 memory consumer"
+  sendnotice
+  exit 2
+elif [[ $mem -lt $crit ]] && [[ $mem -gt $warn ]]; then
+#  echo "Memory $mem is warning state"
+  exit 1
+else
+#  echo "No worries $mem"
+  exit 0
+fi
