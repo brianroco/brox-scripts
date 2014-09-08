@@ -37,12 +37,12 @@ fi
 
 while getopts "c:w:e:h" opt; do
   case $opt in
-    c)  crit=$OPTARG; check_int;;
-    w)  warn=$OPTARG; check_int;;
-    e)  email=$OPTARG; check_email;;
-    h)  usage;;
-    \?) usage;;
-    :)  usage;;
+    c)  check_int; crit=$OPTARG;;
+    w)  check_int; warn=$OPTARG;;
+    e)  check_email; email=$OPTARG;;
+    h|\?|:)  usage;;
+#    \?) usage;;
+#    :)  usage;;
   esac
 done
 
